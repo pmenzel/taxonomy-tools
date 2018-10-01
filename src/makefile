@@ -10,11 +10,14 @@ else
 LD_LIBS_STATIC = -Wl,--whole-archive -lpthread -lz -Wl,--no-whole-archive
 endif
 
-all: makefile blasthits2krona
-	mkdir -p ../bin && cp blasthits2krona ../bin/
+all: makefile blasthits2krona lca
+	mkdir -p ../bin && cp blasthits2krona lca ../bin/
 
 blasthits2krona: makefile blasthits2krona.o util.o
 	$(CXX) $(LDFLAGS) -o blasthits2krona blasthits2krona.o util.o
+
+lca: makefile lca.o util.o
+	$(CXX) $(LDFLAGS) -o lca lca.o util.o
 
 %.o : %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<

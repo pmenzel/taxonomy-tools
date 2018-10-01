@@ -15,10 +15,9 @@ void usage(char *progname);
 
 int main(int argc, char** argv) {
 
-
-	std::unordered_map<std::string,uint64_t> acc2taxid;
-	std::unordered_map<uint64_t,uint64_t> nodes;
-	std::unordered_map<uint64_t, std::string> node2name;
+	std::unordered_map<Accession,TaxonId> acc2taxid;
+	TaxTree nodes;
+	std::unordered_map<TaxonId, TaxonName> node2name;
 
 	std::string nodes_filename = "";
 	std::string names_filename = "";
@@ -85,15 +84,15 @@ int main(int argc, char** argv) {
 	in1_file.open(in1_filename);
 	if(!in1_file.is_open()) {  error("Could not open file " + in1_filename); exit(EXIT_FAILURE); }
 
-	std::unordered_map<std::string, uint64_t> acc2hitcount;
+	std::unordered_map<Accession, int> acc2hitcount;
 
-	// count occurences 
+	// count occurences
 	std::string line;
 	while(getline(in1_file,line)) {
 		if(line.length() == 0) { continue; }
 		size_t start = line.find('\t');
 		size_t end = line.find('\t',start+1);
-		std::string acc = line.substr(start+1,end-start-1);
+		Accession acc = line.substr(start+1,end-start-1);
 		//std::cerr << acc << "\n";
 		acc2hitcount[acc]++;
 	}
@@ -105,18 +104,18 @@ int main(int argc, char** argv) {
 	krona_file.open(out_filename);
 	if(!krona_file.is_open()) {  error("Could not open file " + out_filename + " for writing"); exit(EXIT_FAILURE); }
 	for(auto it_acc : acc2hitcount) {
-		std::string acc = it_acc.first;
+		Accession acc = it_acc.first;
 		auto it_id = acc2taxid.find(acc);
 		if(it_id == acc2taxid.end()) {
 			std::cerr << "Warning: Accession " << acc << " is not found in "<< acc2taxid_filename << ".\n";
 			continue;
 		}
-		uint64_t id = it_id->second;
+		TaxonId id = it_id->second;
 		if(node2name.count(id)==0) {
 			std::cerr << "Warning: Taxon ID " << id << " found in input file is not contained in names.dmp file "<< names_filename << ".\n";
 			continue;
 		}
-		std::vector<std::string> lineage;
+		std::vector<TaxonName> lineage;
 		lineage.push_back(node2name.at(id));
 		while(nodes.count(id)>0 && id != nodes.at(id)) {
 			if(node2name.count(nodes.at(id))==0) {
@@ -139,13 +138,14 @@ void usage(char *progname) {
 	fprintf(stderr, "Copyright 2018 Peter Menzel\n");
 	fprintf(stderr, "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n");
 	fprintf(stderr, "\n");
-	fprintf(stderr, "Usage:\n   %s -t nodes.dmp -n names.dmp -i blast.out -o blast2krona.out\n", progname);
+	fprintf(stderr, "Usage:\n   %s -t nodes.dmp -n names.dmp -a nucl_gb.accession2taxid -i blast.out -o blast2krona.out\n", progname);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Mandatory arguments:\n");
 	fprintf(stderr, "   -i FILENAME   Name of input file\n");
 	fprintf(stderr, "   -o FILENAME   Name of output file.\n");
 	fprintf(stderr, "   -t FILENAME   Name of nodes.dmp file\n");
 	fprintf(stderr, "   -n FILENAME   Name of names.dmp file\n");
+	fprintf(stderr, "   -a FILENAME   Name of nucl_gb.accession2taxid file\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Optional arguments:\n");
 	fprintf(stderr, "   -v            Enable verbose output.\n");

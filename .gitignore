@@ -1,4 +1,5 @@
 *.o
 *.swp
 blasthits2krona
+lca
 bin/

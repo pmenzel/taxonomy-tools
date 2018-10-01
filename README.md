@@ -18,6 +18,15 @@ Krona/KronaTools/scripts/ImportText.pl -o blast.html blast.krona
 ```
 Open `blast.html`.
 
+## lca
+
+This program reads a file with a set of taxon IDs (separated by tabs) per line and
+outputs the least common ancestor (LCA) of the taxa.
+
+Usage:
+```
+lca -t nodes.dmp -i input.tsv -o out
+```
 
 ## License
 

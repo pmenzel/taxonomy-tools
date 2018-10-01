@@ -10,26 +10,34 @@
 #include <fstream>
 #include <limits.h>
 
+using TaxonId = uint64_t;
+using Accession = std::string;
+using Rank = std::string;
+using TaxonName = std::string;
+using TaxTree = std::unordered_map<TaxonId,TaxonId>;
+
 void error(const std::string e);
 
 void strip(std::string &s);
 
 bool isalpha(const char & c);
 
-void parse_accession2taxid(std::unordered_map<std::string,uint64_t> &, std::ifstream &);
+void parse_accession2taxid(std::unordered_map<Accession,TaxonId> &, std::ifstream &);
 
-void parseNodesDmp(std::unordered_map<uint64_t,uint64_t> &, std::ifstream &);
+void parseNodesDmp(TaxTree &, std::ifstream &);
 
-void parseNodesDmpWithRank(std::unordered_map<uint64_t,uint64_t> &, std::unordered_map<uint64_t,std::string> &, std::ifstream &);
+void parseNodesDmpWithRank(TaxTree &, std::unordered_map<TaxonId,Rank> &, std::ifstream &);
 
-void parseNamesDmp(std::unordered_map<uint64_t,std::string> &, std::ifstream &);
+void parseNamesDmp(std::unordered_map<TaxonId,TaxonName> &, std::ifstream &);
 
-std::string getTaxonNameFromId(const std::unordered_map<uint64_t,std::string> &, uint64_t, const std::string &);
-
-/* returns true if node1 is ancestor of node2  or if node1==node2*/
-bool is_ancestor(const std::unordered_map<uint64_t,uint64_t> &, const std::string &, const std::string &);
+TaxonName getTaxonNameFromId(const std::unordered_map<TaxonId,TaxonName> &, const TaxonId &, const std::string &);
 
 /* returns true if node1 is ancestor of node2  or if node1==node2*/
-bool is_ancestor(const std::unordered_map<uint64_t,uint64_t> &, uint64_t, uint64_t);
+bool is_ancestor(const TaxTree &, const TaxonName &, const TaxonName &);
+
+/* returns true if node1 is ancestor of node2  or if node1==node2*/
+bool is_ancestor(const TaxTree &, TaxonId, TaxonId);
+
+TaxonId lca_from_ids(const TaxTree &, const std::set<TaxonId> &);
 
 #endif
