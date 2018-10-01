@@ -1,12 +1,12 @@
 # Taxonomy Tools
 
 A collection of tools for specific use cases that deal with the NCBI taxonomy.
-For all programs, first download and extract [taxdump.tgz](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz).
+For all programs, first download and extract `ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz`.
 
 ## blasthits2krona
 
 This program requires [Krona](https://github.com/marbl/Krona) and
-[nucl_gb.accession2taxid.gz](ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz).
+`ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz`.
 
 Usage:
 ```
