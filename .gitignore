@@ -1,0 +1,4 @@
+*.o
+*.swp
+blasthits2krona
+bin/
