@@ -10,8 +10,11 @@ else
 LD_LIBS_STATIC = -Wl,--whole-archive -lpthread -lz -Wl,--no-whole-archive
 endif
 
-all: makefile blasthits2krona lca
-	mkdir -p ../bin && cp blasthits2krona lca ../bin/
+all: makefile blasthits2krona lca acc2name
+	mkdir -p ../bin && cp blasthits2krona lca acc2name ../bin/
+
+acc2name: makefile acc2name.o util.o
+	$(CXX) $(LDFLAGS) -o acc2name acc2name.o util.o
 
 blasthits2krona: makefile blasthits2krona.o util.o
 	$(CXX) $(LDFLAGS) -o blasthits2krona blasthits2krona.o util.o
@@ -25,7 +28,7 @@ lca: makefile lca.o util.o
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<
 
 clean:
-	rm -f -v blasthits2krona ../bin/*
+	rm -f -v blasthits2krona lca acc2name ../bin/*
 	find . -name "*.o" -delete
 
 static: LDFLAGS = -static
