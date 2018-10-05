@@ -18,6 +18,20 @@ Krona/KronaTools/scripts/ImportText.pl -o blast.html blast.krona
 ```
 Open `blast.html`.
 
+## acc2name
+
+This program reads a text file with Genbank nucleotide accession numbers,
+appends the corresponding taxon id and the taxon name, and prints the output in
+a 3-column tab-separated file.
+
+It requires
+`ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz`.
+
+Usage:
+```
+acc2name -t nodes.dmp -n names.dmp -a nucl_gb.accession2taxid -i acc_list.txt -o acc_name.tsv
+```
+
 ## lca
 
 This program reads a file with a set of taxon IDs (separated by tabs) per line and
