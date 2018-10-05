@@ -111,20 +111,23 @@ int main(int argc, char** argv) {
 			continue;
 		}
 		TaxonId id = it_id->second;
-		if(node2name.count(id)==0) {
+		auto it_name = node2name.find(id);
+		if(it_name == node2name.end()) {
 			std::cerr << "Warning: Taxon ID " << id << " found in input file is not contained in names.dmp file "<< names_filename << ".\n";
 			continue;
 		}
 		std::vector<TaxonName> lineage;
-		lineage.push_back(node2name.at(id));
-		while(nodes.count(id)>0 && id != nodes.at(id)) {
-			if(node2name.count(nodes.at(id))==0) {
-				std::cerr << "Warning: Taxon ID " << nodes.at(id) << " found in input file is not contained in names file "<< names_filename << ".\n";
+		lineage.push_back(it_name->second);
+		for(auto it_n = nodes.find(id); it_n != nodes.end() && it_n->first != it_n->second;) {
+			auto it_name2 = node2name.find(it_n->second);
+			if(it_name2 == node2name.end()) {
+				std::cerr << "Warning: Taxon ID " << it_n->first << " found in input file is not contained in names file "<< names_filename << ".\n";
 			}
 			else {
-				lineage.insert(lineage.begin(),node2name.at(nodes.at(id)));
+				lineage.insert(lineage.begin(),it_name2->second);
 			}
-			id = nodes.at(id);
+			id = it_n->second;
+			it_n = nodes.find(id);
 		}
 		krona_file << it_acc.second ;
 		for(auto  it_lin : lineage) krona_file << "\t" << it_lin;
