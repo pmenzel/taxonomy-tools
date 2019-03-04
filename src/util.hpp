@@ -40,4 +40,8 @@ bool is_ancestor(const TaxTree &, TaxonId, TaxonId);
 
 TaxonId lca_from_ids(const TaxTree &, const std::set<TaxonId> &);
 
+TaxonId lca_two(const TaxTree & nodes, TaxonId node1, TaxonId node2);
+
+TaxonId lowest_from_ids(const TaxTree &, const std::set<TaxonId> &);
+
 #endif

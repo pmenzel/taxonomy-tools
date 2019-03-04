@@ -20,7 +20,7 @@ Open `blast.html`.
 
 ## acc2name
 
-This program reads a text file with Genbank nucleotide accession numbers,
+This program reads a text file with GenBank nucleotide accession numbers,
 appends the corresponding taxon id and the taxon name, and prints the output in
 a 3-column tab-separated file.
 
@@ -34,7 +34,7 @@ acc2name -t nodes.dmp -n names.dmp -a nucl_gb.accession2taxid -i acc_list.txt -o
 
 ## lca
 
-This program reads a file with a set of taxon IDs (separated by tabs) per line and
+This program reads a file with a list of taxon IDs (separated by tabs) per line and
 outputs the least common ancestor (LCA) of the taxa.
 
 Usage:
@@ -42,9 +42,21 @@ Usage:
 lca -t nodes.dmp -i input.tsv -o out
 ```
 
+By default, the program returns the standard LCA for the given list of taxon IDs.
+When setting the option `-m lowest`, it instead returns that taxon which is lowest
+in a path and above any bifurcation creates by the input IDs.
+
+Example:
+
+![LCA modes](img/lca_modes.png?raw=true "LCA modes")
+
+When given the list of nodes `a`, `b`, and `c` as input, the standard LCA of these three nodes is `c`,
+whereas the option `-m lowest` would output the node just above `a` and `b`.
+
+
 ## License
 
-Copyright (c) 2018 Peter Menzel
+Copyright (c) 2018,2019 Peter Menzel
 
 Taxonomy-tools is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

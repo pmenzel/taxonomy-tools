@@ -11,6 +11,7 @@
 #include <vector>
 #include <unordered_set>
 #include <climits>
+#include <assert.h>
 
 #include "util.hpp"
 
@@ -24,6 +25,7 @@ int main(int argc, char **argv) {
 	std::string nodes_filename;
 	std::string in_filename;
 	std::string out_filename;
+	std::string mode = "lca";
 
 	bool verbose = false;
 	bool debug = false;
@@ -31,7 +33,7 @@ int main(int argc, char **argv) {
 	// --------------------- START ------------------------------------------------------------------
 	// Read command line params
 	int c;
-	while ((c = getopt(argc, argv, "ahdvrl:g:t:i:o:")) != -1) {
+	while ((c = getopt(argc, argv, "hdvm:t:i:o:")) != -1) {
 		switch (c)  {
 			case 'h':
 				usage(argv[0]);
@@ -39,6 +41,8 @@ int main(int argc, char **argv) {
 				debug = true; break;
 			case 'v':
 				verbose = true; break;
+			case 'm':
+				mode = optarg; break;
 			case 'i':
 				in_filename = optarg; break;
 			case 't':
@@ -52,6 +56,7 @@ int main(int argc, char **argv) {
 	if(nodes_filename.length() == 0) { error("Please specify the location of the nodes.dmp file, using the -t option."); usage(argv[0]); }
 	if(in_filename.length() == 0) { error("Please specify the location of the input file, using the -i option."); usage(argv[0]); }
 	if(out_filename.length() == 0) { error("Please specify the name of the output file, using the -o option."); usage(argv[0]); }
+	if(mode != "lca" && mode != "lowest") { error("Error: Mode must either be 'lca' or 'lowest'."); usage(argv[0]); }
 
 	std::ifstream nodes_file;
 	nodes_file.open(nodes_filename);
@@ -96,15 +101,32 @@ int main(int argc, char **argv) {
 					ids.insert(id);
 			}
 			else {
-				std::cerr << "Taxon ID " << id << " not found in nodes.dmp" << std::endl;
+				std::cerr << "Warning: Taxon ID " << id << " not found in nodes.dmp, line: " << line << std::endl;
 			}
 			start = end+1;
 		}
 
-		if(!ids.empty()) {
-			TaxonId lca = (ids.size()==1) ?  *(ids.begin()) : lca_from_ids(nodes, ids);
-			if(debug) std::cerr << "LCA=" << lca << std::endl;
-			out_file << lca << "\n";
+		if(ids.size()>0) {
+			if(mode=="lca") {
+				TaxonId lca = (ids.size()==1) ?  *(ids.begin()) : lca_from_ids(nodes, ids);
+				if(debug) std::cerr << "LCA=" << lca << std::endl;
+				if(lca == 0) { std::cerr << "Warning: Could not determine LCA in line " << line << std::endl; }
+				out_file << lca << "\n";
+			}
+			else {
+				assert(conflict=="lowest");
+				if(ids.size()==1) {
+					out_file << *(ids.begin()) << "\n";
+					continue;
+				}
+				TaxonId lowest = lowest_from_ids(nodes,ids);
+				if(debug) std::cerr << "lowest=" <<lowest << std::endl;
+				if(lowest == 0) { std::cerr << "Warning: Could not determine lowest taxon in line " << line << std::endl; }
+				out_file << lowest << "\n";
+			}
+		}
+		else {
+			std::cerr << "No taxon IDs found in line " << line << std::endl;
 		}
 	}
 
@@ -114,7 +136,7 @@ int main(int argc, char **argv) {
 }
 
 void usage(char *progname) {
-	fprintf(stderr, "Copyright 2018 Peter Menzel\n");
+	fprintf(stderr, "Copyright 2018,2019 Peter Menzel\n");
 	fprintf(stderr, "License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Usage:\n   %s -t nodes.dmp -i input.tsv -o output.txt\n", progname);
@@ -122,6 +144,10 @@ void usage(char *progname) {
 	fprintf(stderr, "   -t FILENAME   Name of nodes.dmp file.\n");
 	fprintf(stderr, "   -i FILENAME   Name of tab-delimited input file.\n");
 	fprintf(stderr, "   -o FILENAME   Name of output file.\n");
+	fprintf(stderr, "Optional arguments:\n");
+	fprintf(stderr, "   -m STRING     Mode, muste be either 'lca' (default) or 'lowest'.\n");
+	fprintf(stderr, "   -v            Enable verbose mode.\n");
+	fprintf(stderr, "   -d            Enable debug output.\n");
 	exit(EXIT_FAILURE);
 }
 

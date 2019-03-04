@@ -88,7 +88,7 @@ void parseNodesDmp(TaxTree & nodes, std::ifstream & nodes_file) {
 			TaxonId node = stoul(line.substr(0,end));
 			size_t start = line.find_first_of("0123456789",end);
 			end = line.find_first_not_of("0123456789",start+1);
-			uint64_t parent = stoul(line.substr(start,end-start));
+			TaxonId parent = (TaxonId)stoul(line.substr(start,end-start));
 			nodes.emplace(node,parent);
 		}
 		catch(const std::invalid_argument& ia) {
@@ -108,7 +108,7 @@ void parseNodesDmpWithRank(TaxTree & nodes, std::unordered_map<TaxonId,Rank> & n
 		try {
 			size_t end = line.find_first_not_of("0123456789");
 			//cerr << "end=" << end << "\t";
-			uint64_t node = stoul(line.substr(0,end));
+			TaxonId node = stoul(line.substr(0,end));
 			size_t start = line.find_first_of("0123456789",end);
 			//cerr << "start=" << start <<"\t";
 			end = line.find_first_not_of("0123456789",start+1);
@@ -182,13 +182,13 @@ TaxonId lca_from_ids(const TaxTree & nodes, const std::set<TaxonId> & ids) {
 	unsigned int shallowest_depth = 100000;
 	unsigned int index = 0;
 	for(auto it : ids) {
+		// check if this id was already seen, then skip it
 		if(nodes.count(it)==0) {
-			std::cerr << "Warning: Taxon ID " << it << " in database is not contained in taxonomic tree.\n";
+			std::cerr << "Warning: Taxon ID " << it << " is not contained in taxonomic tree.\n";
 			num_ids--;
 			continue;
 		}
 
-		// check if this id was already seen, then skip it
 		leafs[index++] = it;
 
 		//if id is alrady in the depth map then do not add it.
@@ -224,7 +224,7 @@ TaxonId lca_from_ids(const TaxTree & nodes, const std::set<TaxonId> & ids) {
 
 	while(true) {
 		//foreach element in the list, check if id is the same, otherwise go one level up in tree, i.e. one more iteration
-		uint64_t first = leafs[0];
+		TaxonId first = leafs[0];
 		bool found = true;
 		for(size_t index = 0; index < num_ids; ++index) {
 			if(first != leafs[index]) {
@@ -240,3 +240,55 @@ TaxonId lca_from_ids(const TaxTree & nodes, const std::set<TaxonId> & ids) {
 	free(leafs);
 
 }
+
+
+
+TaxonId lowest_from_ids(const TaxTree & nodes, const std::set<TaxonId> & ids) {
+	size_t num_ids = ids.size();
+	if(num_ids == 1) {
+		if(nodes.find(*(ids.begin()))==nodes.end()) {
+			std::cerr << "Warning: Taxon ID " << *(ids.begin()) << " is not contained in taxonomic tree.\n";
+			return 0;
+		}
+		else {
+			return *(ids.begin());
+		}
+	}
+	std::set<TaxonId> s;
+	for(auto it : ids) {
+		if(nodes.count(it)==0) {
+			std::cerr << "Warning: Taxon ID " << it << " is not contained in taxonomic tree.\n";
+		}
+		else {
+			s.insert(it);
+		}
+	}
+
+	TaxonId lca = lca_from_ids(nodes,s);
+	while(s.find(lca) != s.end()) {
+		s.erase(lca);
+		if(s.size() > 1)
+			lca = lca_from_ids(nodes,s);
+		else
+			return *(s.begin());
+	}
+
+	return lca;
+}
+
+TaxonId lca_two(const TaxTree & nodes, TaxonId node1, TaxonId node2) {
+	std::set<TaxonId> lineage1;
+	lineage1.emplace(node1);
+	while(nodes.count(node1)>0 && node1 != nodes.at(node1)) {
+		lineage1.emplace(nodes.at(node1));
+		node1 = nodes.at(node1);
+	}
+
+	TaxonId lca = node2;
+	do {
+		lca = nodes.at(lca);
+	} while(lineage1.count(lca)==0 && lca != nodes.at(lca));
+
+	return lca;
+}
+
