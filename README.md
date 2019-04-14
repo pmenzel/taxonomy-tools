@@ -55,6 +55,20 @@ whereas the option `-m lowest` would output the node just above `a` and `b`.
 
 When setting `-m path`, it will return the leaf node that has the heighest weighted path to the root.
 
+## taxonR
+
+The file `taxonR.cpp` provides functions for quickly accessing the `nodes.dmp`
+file from within R.
+
+Example usage:
+```{r}
+> Rcpp::sourceCpp("/home/ptr/software/taxonomy-tools/src/taxonR.cpp")
+> n <- loadNodesDmp("/home/ptr/temp/nodes.dmp")
+> is_ancestor(n,2,122)
+[1] TRUE
+> parent(n,222)
+[1] 506
+```
 
 ## License
 
