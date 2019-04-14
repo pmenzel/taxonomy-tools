@@ -11,10 +11,14 @@
 #include <limits.h>
 
 using TaxonId = uint64_t;
+using Count = uint32_t;
 using Accession = std::string;
 using Rank = std::string;
 using TaxonName = std::string;
+
 using TaxTree = std::unordered_map<TaxonId,TaxonId>;
+using TaxonId2Count = std::unordered_map<TaxonId, Count>;
+using pTaxTree = std::unordered_map<TaxonId,TaxonId> *;
 
 void error(const std::string e);
 
@@ -43,5 +47,7 @@ TaxonId lca_from_ids(const TaxTree &, const std::set<TaxonId> &);
 TaxonId lca_two(const TaxTree & nodes, TaxonId node1, TaxonId node2);
 
 TaxonId lowest_from_ids(const TaxTree &, const std::set<TaxonId> &);
+
+TaxonId heaviest_path(const TaxTree &, const TaxonId2Count &);
 
 #endif

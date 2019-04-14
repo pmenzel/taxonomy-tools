@@ -40,12 +40,15 @@ bool is_ancestor(const TaxTree & nodes, const std::string & id1, const std::stri
 bool is_ancestor(const TaxTree & nodes, TaxonId node1, TaxonId node2) {
 	if(nodes.count(node1)==0) { std::cerr << "Taxon ID " << node1 << " not found in taxonomy!" << std::endl; return false; }
 	if(nodes.count(node2)==0) { std::cerr << "Taxon ID " << node2 << " not found in taxonomy!" << std::endl; return false; }
+	if(node2==node1) {
+		return true;
+	}
 	/* climb up from node 2 and return true if encountering node 1 */
-	while(nodes.count(node2)>0 && node2 != nodes.at(node2)) {
+	while(node2 != nodes.at(node2)) {
+		node2 = nodes.at(node2);
 		if(node2==node1) {
 			return true;
 		}
-		node2 = nodes.at(node2);
 	}
 	return false;
 }
@@ -292,3 +295,34 @@ TaxonId lca_two(const TaxTree & nodes, TaxonId node1, TaxonId node2) {
 	return lca;
 }
 
+
+TaxonId heaviest_path(const TaxTree & nodes, const TaxonId2Count & id2count) {
+
+	//for each id, walk up path and sum up counts of ids in id2count map
+	//id(s) with highest sum wins
+	std::set<TaxonId> ids_with_highest_score;
+	Count highest_score = 0;	
+	for(auto const it : id2count) {
+		uint64_t id = it.first;
+		uint64_t sum = 0;
+
+		while(nodes.count(id)>0 && id != nodes.at(id)) {
+			auto it2 = id2count.find(id);
+			if(it2 != id2count.end()) {
+				sum += it2->second;
+			}
+			id = nodes.at(id);
+		}
+		//std::cerr << it.first << " " << sum << "\n";
+		if(sum > highest_score) {
+			highest_score = sum;
+			ids_with_highest_score.clear();
+			ids_with_highest_score.emplace(it.first);
+		}else if( sum == highest_score) {
+			ids_with_highest_score.emplace(it.first);
+		}
+	}
+	// do lca for tie breaking
+	return (ids_with_highest_score.size()==1) ? *ids_with_highest_score.begin() : lca_from_ids(nodes, ids_with_highest_score);
+
+}

@@ -39,4 +39,4 @@ debug: CXXFLAGS = -O3 -pthread -std=c++11 -g -Wall -Wpedantic -Wextra -Wconversi
 debug: CFLAGS = -g -O3 -Wall -Wno-uninitialized
 debug: all
 
-.PHONY: clean debug static
+.PHONY: clean debug static test

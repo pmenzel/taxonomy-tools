@@ -53,6 +53,8 @@ Example:
 When given the list of nodes `a`, `b`, and `c` as input, the standard LCA of these three nodes is `c`,
 whereas the option `-m lowest` would output the node just above `a` and `b`.
 
+When setting `-m path`, it will return the leaf node that has the heighest weighted path to the root.
+
 
 ## License
 

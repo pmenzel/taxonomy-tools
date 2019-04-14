@@ -55,8 +55,7 @@ int main(int argc, char **argv) {
 	}
 	if(nodes_filename.length() == 0) { error("Please specify the location of the nodes.dmp file, using the -t option."); usage(argv[0]); }
 	if(in_filename.length() == 0) { error("Please specify the location of the input file, using the -i option."); usage(argv[0]); }
-	if(out_filename.length() == 0) { error("Please specify the name of the output file, using the -o option."); usage(argv[0]); }
-	if(mode != "lca" && mode != "lowest") { error("Error: Mode must either be 'lca' or 'lowest'."); usage(argv[0]); }
+	if(mode != "lca" && mode != "lowest" && mode != "path") { error("Error: Mode must either be 'lca', 'lowest', or 'path'."); usage(argv[0]); }
 
 	std::ifstream nodes_file;
 	nodes_file.open(nodes_filename);
@@ -68,16 +67,25 @@ int main(int argc, char **argv) {
 	inputfile.open(in_filename);
 	if(!inputfile.is_open()) { error("Could not open file " + in_filename); exit(EXIT_FAILURE); }
 
-	std::ofstream out_file;
-	out_file.open(out_filename);
-	if(!out_file.is_open()) {  error("Could not open file " + out_filename + " for writing."); exit(EXIT_FAILURE); }
+	std::ostream * out_stream;
+	if(out_filename.length()>0) {
+    std::ofstream * ofs = new std::ofstream();
+    ofs->open(out_filename);
+    if(!(*ofs)) {  error("Could not open file " + out_filename + " for writing"); exit(EXIT_FAILURE); }
+    out_stream = ofs;
+  }
+  else {
+    out_stream = &std::cout;
+  }
 
 	std::set<TaxonId> ids;
+	TaxonId2Count id2count;
 	std::string line;
 	while(getline(inputfile, line)){
 		if(line.length() == 0) { continue; }
 		line += "\t";
 		ids.clear();
+		id2count.clear();
 		if(debug) std::cerr << "Processing line: " << line << std::endl;
 		size_t start = 0, end = 0;
 		while((end = line.find_first_of("\t",start)) != std::string::npos) {
@@ -97,8 +105,13 @@ int main(int argc, char **argv) {
 				break;
 			}
 
-			if(nodes.count(id)>0) {
+			if(nodes.find(id) != nodes.end()) {
+				if(mode=="path") {
+					id2count[id]++;
+				}
+				else {
 					ids.insert(id);
+				}
 			}
 			else {
 				std::cerr << "Warning: Taxon ID " << id << " not found in nodes.dmp, line: " << line << std::endl;
@@ -106,23 +119,29 @@ int main(int argc, char **argv) {
 			start = end+1;
 		}
 
-		if(ids.size()>0) {
+		if(ids.size()>0 || id2count.size() > 0) {
 			if(mode=="lca") {
 				TaxonId lca = (ids.size()==1) ?  *(ids.begin()) : lca_from_ids(nodes, ids);
 				if(debug) std::cerr << "LCA=" << lca << std::endl;
 				if(lca == 0) { std::cerr << "Warning: Could not determine LCA in line " << line << std::endl; }
-				out_file << lca << "\n";
+				(*out_stream) << lca << "\n";
+			}
+			else if(mode=="path") {
+				TaxonId lca = (id2count.size()==1) ?  id2count.begin()->second : heaviest_path(nodes, id2count);
+				if(debug) std::cerr << "heaviest path =" << lca << std::endl;
+				if( lca == 0) { std::cerr << "Warning: Could not determine heaviest path taxon in line " << line << std::endl; }
+				(*out_stream) <<  lca << "\n";
 			}
 			else {
 				assert(conflict=="lowest");
 				if(ids.size()==1) {
-					out_file << *(ids.begin()) << "\n";
+					(*out_stream) << *(ids.begin()) << "\n";
 					continue;
 				}
 				TaxonId lowest = lowest_from_ids(nodes,ids);
 				if(debug) std::cerr << "lowest=" <<lowest << std::endl;
 				if(lowest == 0) { std::cerr << "Warning: Could not determine lowest taxon in line " << line << std::endl; }
-				out_file << lowest << "\n";
+				(*out_stream) << lowest << "\n";
 			}
 		}
 		else {
@@ -131,7 +150,12 @@ int main(int argc, char **argv) {
 	}
 
 	inputfile.close();
-	out_file.close();
+	out_stream->flush();
+  if(out_filename.length()>0) {
+    ((std::ofstream*)out_stream)->close();
+    delete out_stream;
+  }
+
 
 }
 
@@ -143,9 +167,9 @@ void usage(char *progname) {
 	fprintf(stderr, "Mandatory arguments:\n");
 	fprintf(stderr, "   -t FILENAME   Name of nodes.dmp file.\n");
 	fprintf(stderr, "   -i FILENAME   Name of tab-delimited input file.\n");
-	fprintf(stderr, "   -o FILENAME   Name of output file.\n");
 	fprintf(stderr, "Optional arguments:\n");
-	fprintf(stderr, "   -m STRING     Mode, muste be either 'lca' (default) or 'lowest'.\n");
+	fprintf(stderr, "   -o FILENAME   Name of output file.\n");
+	fprintf(stderr, "   -m STRING     Mode, must be either 'lca' (default), 'lowest', or 'path'.\n");
 	fprintf(stderr, "   -v            Enable verbose mode.\n");
 	fprintf(stderr, "   -d            Enable debug output.\n");
 	exit(EXIT_FAILURE);
