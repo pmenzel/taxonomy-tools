@@ -21,10 +21,12 @@ int main(int argc, char **argv) {
 
 	TaxTree nodes;
 	std::unordered_map<TaxonId,unsigned int> node2depth;
+	TaxonSet excluded_ids;
 
 	std::string nodes_filename;
 	std::string in_filename;
 	std::string out_filename;
+	std::string exclusion_filename;
 	std::string mode = "lca";
 
 	bool verbose = false;
@@ -33,7 +35,7 @@ int main(int argc, char **argv) {
 	// --------------------- START ------------------------------------------------------------------
 	// Read command line params
 	int c;
-	while ((c = getopt(argc, argv, "hdvm:t:i:o:")) != -1) {
+	while ((c = getopt(argc, argv, "hdvm:t:i:o:e:")) != -1) {
 		switch (c)  {
 			case 'h':
 				usage(argv[0]);
@@ -49,6 +51,8 @@ int main(int argc, char **argv) {
 				nodes_filename = optarg; break;
 			case 'o':
 				out_filename = optarg; break;
+			case 'e':
+				exclusion_filename = optarg; break;
 			default:
 				usage(argv[0]);
 		}
@@ -59,9 +63,17 @@ int main(int argc, char **argv) {
 
 	std::ifstream nodes_file;
 	nodes_file.open(nodes_filename);
-	if(!nodes_file.is_open()) { error("Could not open file " + nodes_filename); exit(EXIT_FAILURE); }
+	if(!nodes_file) { error("Could not open file " + nodes_filename); exit(EXIT_FAILURE); }
 	parseNodesDmp(nodes,nodes_file);
 	nodes_file.close();
+
+	if(exclusion_filename.length() > 0) {
+		std::ifstream exclusion_file;
+		exclusion_file.open(exclusion_filename);
+		if(!exclusion_file) { error("Could not open file " + exclusion_filename); exit(EXIT_FAILURE); }
+		parseExclusionFile(nodes, excluded_ids, exclusion_file);
+		exclusion_file.close();
+	}
 
 	std::ifstream inputfile;
 	inputfile.open(in_filename);
@@ -120,29 +132,113 @@ int main(int argc, char **argv) {
 		}
 
 		if(ids.size()>0 || id2count.size() > 0) {
+			TaxonId result = 0;
 			if(mode=="lca") {
-				TaxonId lca = (ids.size()==1) ?  *(ids.begin()) : lca_from_ids(nodes, ids);
-				if(debug) std::cerr << "LCA=" << lca << std::endl;
-				if(lca == 0) { std::cerr << "Warning: Could not determine LCA in line " << line << std::endl; }
-				(*out_stream) << lca << "\n";
+				if(ids.size()==1) {
+					result = *(ids.begin());
+				}
+				else if(excluded_ids.size()>0) {
+					TaxonSet filtered_ids;
+					// go through ids and add all ids that are not in exclusion list to new set
+					for(auto const & it_id : ids) {
+						bool keep = true;
+						for(auto const & it_excl_id : excluded_ids) {
+							if(is_ancestor(nodes, it_excl_id, it_id)) {
+								keep = false;
+								break;
+							}
+						}
+						if(keep) {
+							filtered_ids.emplace(it_id);
+						}
+					}
+					// if filtered set is empty, then do lca on original ids
+					if(filtered_ids.size()==0) {
+						result = lca_from_ids(nodes, ids);
+					}
+					else if(filtered_ids.size()==1) {
+						result = *(filtered_ids.begin());
+					}
+					else if(filtered_ids.size()==2) {
+						result = lca_two(nodes, *(filtered_ids.begin()), *(++filtered_ids.begin()));
+					}
+					else { // else do lca on new set
+						result = lca_from_ids(nodes, filtered_ids);
+					}
+				}
+				else if(ids.size()==2) {
+						result = lca_two(nodes, *(ids.begin()), *(++ids.begin()));
+				}
+				else {
+					result = lca_from_ids(nodes, ids);
+				}
 			}
 			else if(mode=="path") {
-				TaxonId lca = (id2count.size()==1) ?  id2count.begin()->second : heaviest_path(nodes, id2count);
-				if(debug) std::cerr << "heaviest path =" << lca << std::endl;
-				if( lca == 0) { std::cerr << "Warning: Could not determine heaviest path taxon in line " << line << std::endl; }
-				(*out_stream) <<  lca << "\n";
+				if(id2count.size()==1) {
+					result = id2count.begin()->second ;
+				}
+				else if(excluded_ids.size()>0) {
+					TaxonId2Count filtered_id2count;
+					// go through ids and add all ids that are not in exclusion list to new set
+					for(auto const & it_id : id2count) {
+						bool keep = true;
+						for(auto const & it_excl_id : excluded_ids) {
+							if(is_ancestor(nodes, it_excl_id, it_id.first)) {
+								keep = false;
+								break;
+							}
+						}
+						if(keep) {
+							filtered_id2count.emplace(it_id.first,it_id.second);
+						}
+					}
+					// if filtered set is empty, then do lca on original ids
+					if(filtered_id2count.size()==0) {
+						result = heaviest_path(nodes, id2count);
+					}
+					else { // else do lca on new set
+						result = heaviest_path(nodes, filtered_id2count);
+					}
+				}
+				else {
+						result = heaviest_path(nodes, id2count);
+				}
 			}
 			else {
 				assert(conflict=="lowest");
 				if(ids.size()==1) {
-					(*out_stream) << *(ids.begin()) << "\n";
-					continue;
+					result = *(ids.begin());
 				}
-				TaxonId lowest = lowest_from_ids(nodes,ids);
-				if(debug) std::cerr << "lowest=" <<lowest << std::endl;
-				if(lowest == 0) { std::cerr << "Warning: Could not determine lowest taxon in line " << line << std::endl; }
-				(*out_stream) << lowest << "\n";
+				else if(excluded_ids.size()>0) {
+					TaxonSet filtered_ids;
+					// go through ids and add all ids that are not in exclusion list to new set
+					for(auto const & it_id : ids) {
+						bool keep = true;
+						for(auto const & it_excl_id : excluded_ids) {
+							if(is_ancestor(nodes, it_excl_id, it_id)) {
+								keep = false;
+								break;
+							}
+						}
+						if(keep) {
+							filtered_ids.emplace(it_id);
+						}
+					}
+					// if filtered set is empty, then do lca on original ids
+					if(filtered_ids.size()==0) {
+						result = lowest_from_ids(nodes, ids);
+					}
+					else { // else do lca on new set
+						result = lowest_from_ids(nodes, filtered_ids);
+					}
+				}
+				else {
+					result = lowest_from_ids(nodes, ids);
+				}
 			}
+
+			if(result == 0) { std::cerr << "Warning: Could not determine LCA in line " << line << std::endl; }
+			(*out_stream) << result << "\n";
 		}
 		else {
 			std::cerr << "No taxon IDs found in line " << line << std::endl;
@@ -168,6 +264,7 @@ void usage(char *progname) {
 	fprintf(stderr, "   -t FILENAME   Name of nodes.dmp file.\n");
 	fprintf(stderr, "   -i FILENAME   Name of tab-delimited input file.\n");
 	fprintf(stderr, "Optional arguments:\n");
+	fprintf(stderr, "   -e FILENAME   Name of file with exlusion taxon IDs.\n");
 	fprintf(stderr, "   -o FILENAME   Name of output file.\n");
 	fprintf(stderr, "   -m STRING     Mode, must be either 'lca' (default), 'lowest', or 'path'.\n");
 	fprintf(stderr, "   -v            Enable verbose mode.\n");

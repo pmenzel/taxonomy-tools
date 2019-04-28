@@ -55,6 +55,14 @@ whereas the option `-m lowest` would output the node just above `a` and `b`.
 
 When setting `-m path`, it will return the leaf node that has the heighest weighted path to the root.
 
+### Exclusion list
+It is possible to specify a file containing a list with taxon IDs (one per line) using option `-e`.
+These IDs are exluded from the LCA calculation in all three modes, unless there
+are no other taxon IDs in an input row.
+
+This is for example useful, to exclude taxa assigned to environmental or
+unclassified nodes in the NCBI taxonomy.
+
 ## taxonR
 
 The file `taxonR.cpp` provides functions for quickly accessing the `nodes.dmp`

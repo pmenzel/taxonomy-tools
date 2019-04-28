@@ -159,6 +159,23 @@ void parseNamesDmp(std::unordered_map<TaxonId,TaxonName> & names, std::ifstream 
 	}
 }
 
+void parseExclusionFile(const TaxTree & nodes, TaxonSet & excluded_ids, std::ifstream & exclusion_file) {
+	std::string line;
+	while(std::getline(exclusion_file, line)) {
+		if(line.length() == 0) { continue; }
+		try {
+			TaxonId id = stoul(line);
+			if(nodes.find(id)==nodes.end()) { std::cerr << "Warning: taxon id "<< id << " in exclusion list is not contained in nodes.dmp." << std::endl; }
+			excluded_ids.emplace(id);
+		}
+		catch(const std::invalid_argument& ia) {
+			std::cerr << "Found bad number in line: " << line << std::endl;
+		}
+		catch(const std::out_of_range& oor) {
+			std::cerr << "Found bad number (out of range error) in line: " << line << std::endl;
+		}
+	}
+}
 
 TaxonName getTaxonNameFromId(const std::unordered_map<TaxonId,TaxonName> & node2name, const TaxonId & id, const std::string & names_filename) {
 	TaxonName taxon_name;
@@ -280,6 +297,8 @@ TaxonId lowest_from_ids(const TaxTree & nodes, const std::set<TaxonId> & ids) {
 }
 
 TaxonId lca_two(const TaxTree & nodes, TaxonId node1, TaxonId node2) {
+	if(node1 == node2) { return node1; }
+
 	std::set<TaxonId> lineage1;
 	lineage1.emplace(node1);
 	while(nodes.count(node1)>0 && node1 != nodes.at(node1)) {
@@ -288,9 +307,9 @@ TaxonId lca_two(const TaxTree & nodes, TaxonId node1, TaxonId node2) {
 	}
 
 	TaxonId lca = node2;
-	do {
+	while(lineage1.count(lca)==0 && lca != nodes.at(lca)) {
 		lca = nodes.at(lca);
-	} while(lineage1.count(lca)==0 && lca != nodes.at(lca));
+	}
 
 	return lca;
 }

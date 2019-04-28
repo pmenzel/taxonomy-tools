@@ -16,8 +16,9 @@ using Accession = std::string;
 using Rank = std::string;
 using TaxonName = std::string;
 
-using TaxTree = std::unordered_map<TaxonId,TaxonId>;
 using TaxonId2Count = std::unordered_map<TaxonId, Count>;
+using TaxonSet = std::set<TaxonId>;
+using TaxTree = std::unordered_map<TaxonId,TaxonId>;
 using pTaxTree = std::unordered_map<TaxonId,TaxonId> *;
 
 void error(const std::string e);
@@ -33,6 +34,8 @@ void parseNodesDmp(TaxTree &, std::ifstream &);
 void parseNodesDmpWithRank(TaxTree &, std::unordered_map<TaxonId,Rank> &, std::ifstream &);
 
 void parseNamesDmp(std::unordered_map<TaxonId,TaxonName> &, std::ifstream &);
+
+void parseExclusionFile(const TaxTree &, TaxonSet &, std::ifstream &);
 
 TaxonName getTaxonNameFromId(const std::unordered_map<TaxonId,TaxonName> &, const TaxonId &, const std::string &);
 

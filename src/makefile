@@ -24,7 +24,7 @@ lca: makefile lca.o util.o
 
 %.o : %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $<
-%.o : %.cpp
+%.o : %.cpp %.hpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<
 
 clean:
