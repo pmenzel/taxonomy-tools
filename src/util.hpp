@@ -7,6 +7,7 @@
 #include <set>
 #include <time.h>
 #include <unordered_map>
+#include <map>
 #include <fstream>
 #include <limits.h>
 
@@ -33,7 +34,9 @@ void parseNodesDmp(TaxTree &, std::ifstream &);
 
 void parseNodesDmpWithRank(TaxTree &, std::unordered_map<TaxonId,Rank> &, std::ifstream &);
 
-void parseNamesDmp(std::unordered_map<TaxonId,TaxonName> &, std::ifstream &);
+void parseNodesDmpTopDown(std::multimap<TaxonId, TaxonId> &, std::ifstream &);
+
+void parseNamesDmp(std::unordered_map<TaxonId, TaxonName> &, std::ifstream &);
 
 void parseExclusionFile(const TaxTree &, TaxonSet &, std::ifstream &);
 

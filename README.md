@@ -63,6 +63,17 @@ are no other taxon IDs in an input row.
 This is for example useful, to exclude taxa assigned to environmental or
 unclassified nodes in the NCBI taxonomy.
 
+## subtree
+
+This program reads a list of taxon IDs (one taxon ID per line) and
+outputs a list with all taxon IDs that are descendants of the taxon IDs
+in the input list.
+
+Usage:
+```
+subtree -t nodes.dmp -i in.txt -o out.txt
+```
+
 ## taxonR
 
 The file `taxonR.cpp` provides functions for quickly accessing the `nodes.dmp`

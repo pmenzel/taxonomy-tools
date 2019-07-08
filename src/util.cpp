@@ -159,6 +159,38 @@ void parseNamesDmp(std::unordered_map<TaxonId,TaxonName> & names, std::ifstream 
 	}
 }
 
+void parseNodesDmpTopDown(std::multimap<TaxonId, TaxonId> & parent2children, std::ifstream & nodes_file) {
+	std::string line;
+	while(std::getline(nodes_file, line)) {
+		if(line.length() == 0) { continue; }
+		try {
+			size_t end = line.find_first_not_of("0123456789");
+			//cerr << "end=" << end << "\t";
+			TaxonId node = stoul(line.substr(0,end));
+			size_t start = line.find_first_of("0123456789",end);
+			//cerr << "start=" << start <<"\t";
+			end = line.find_first_not_of("0123456789",start+1);
+			//cerr << "end=" << end <<"\t";
+			TaxonId parent = stoul(line.substr(start,end-start));
+			start = line.find_first_of("abcdefghijklmnopqrstuvwxyz",end);
+			//cerr << "start=" << start <<","<< line[start] << "\t";
+			end = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz ",start);
+			//cerr << "end=" << end << "\t";
+			std::string rank = line.substr(start,end-start);
+
+			parent2children.emplace(parent, node);
+
+		}
+		catch(const std::invalid_argument& ia) {
+			std::cerr << "Found bad number in line: " << line << std::endl;
+		}
+		catch (const std::out_of_range& oor) {
+			std::cerr << "Found bad number (out of range error) in line: " << line << std::endl;
+		}
+	}
+}
+
+
 void parseExclusionFile(const TaxTree & nodes, TaxonSet & excluded_ids, std::ifstream & exclusion_file) {
 	std::string line;
 	while(std::getline(exclusion_file, line)) {

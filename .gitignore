@@ -2,5 +2,6 @@
 *.swp
 blasthits2krona
 lca
+subtree
 acc2name
 bin/
