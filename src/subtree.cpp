@@ -18,25 +18,24 @@
 
 void usage(char *progname);
 
-bool dfs(const TaxonId parent, const std::multimap<TaxonId, TaxonId> & parent2children, std::ostream * out_stream) {
+bool dfs(const TaxonId parent, const std::multimap<TaxonId, TaxonId> & parent2children, TaxonSet & output_ids) {
 
 	auto range = parent2children.equal_range(parent);
 	for(auto i = range.first; i != range.second; ++i) {
-		*out_stream << i->second << '\n';
+		output_ids.insert(i->second);
 		if(parent2children.count(i->second) > 0) {
-			dfs(i->second, parent2children, out_stream);
+			dfs(i->second, parent2children, output_ids);
 		}
 	}
 
 }
-
-
 
 int main(int argc, char **argv) {
 
 	TaxTree nodes;
 	std::multimap<TaxonId, TaxonId> parent2children;
 	TaxonSet input_ids;
+	TaxonSet output_ids;
 
 	std::string nodes_filename;
 	std::string in_filename;
@@ -127,12 +126,15 @@ int main(int argc, char **argv) {
 
 
 	for(const TaxonId n : input_ids) {
-		*out_stream << n << "\n";
+		output_ids.insert(n);
 		if(parent2children.count(n) > 0) {
-			dfs(n, parent2children, out_stream);
+			dfs(n, parent2children, output_ids);
 		}
 	}
 
+	for(const TaxonId id : output_ids) {
+		*out_stream << id << "\n";
+	}
 	out_stream->flush();
   if(out_filename.length()>0) {
     ((std::ofstream*)out_stream)->close();
