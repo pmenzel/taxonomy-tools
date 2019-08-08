@@ -53,12 +53,12 @@ Example:
 When given the list of nodes `a`, `b`, and `c` as input, the standard LCA of these three nodes is `c`,
 whereas the option `-m lowest` would output the node just above `a` and `b`.
 
-When setting `-m path`, it will return the leaf node that has the heighest weighted path to the root.
+When setting `-m path`, it will return the leaf node that has the highest weighted path to the root.
 
 ### Exclusion list
-It is possible to specify a file containing a list with taxon IDs (one per line) using option `-e`.
-These IDs are exluded from the LCA calculation in all three modes, unless there
-are no other taxon IDs in an input row.
+It is possible to specify a file containing a list with taxon IDs (one per
+line) using option `-e`.  These IDs are excluded from the LCA calculation in all
+three modes, unless there are no other taxon IDs in an input row.
 
 This is for example useful, to exclude taxa assigned to environmental or
 unclassified nodes in the NCBI taxonomy.
@@ -72,6 +72,24 @@ in the input list.
 Usage:
 ```
 subtree -t nodes.dmp -i in.txt -o out.txt
+```
+
+One use case for this program is to create a list of taxon IDs that
+is used as an exclusion list for `lca` (see above).  
+Similarly, the taxon ID list can be used for including or excluding taxa in
+the NCBI BLAST+ programs, using the options `-taxidlist` or
+`-negative_taxidlist` respectively, which are available with the v5 database
+format from BLAST+ version 2.8.0+.
+
+Example:
+```
+tar xf taxdump.tar.gz names.dmp nodes.dmp
+
+grep "scientific name" names.dmp| grep -w -P "uncultured|environmental samples|metagenome|unclassified" | cut -f1 >in.txt
+
+taxonomy-tools/src/subtree -t nodes.dmp -i in.txt > exclusion_list.txt
+
+blastn -negative_taxidlist -db ...
 ```
 
 ## taxonR
