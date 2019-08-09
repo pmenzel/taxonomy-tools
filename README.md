@@ -32,6 +32,24 @@ Usage:
 acc2name -t nodes.dmp -n names.dmp -a nucl_gb.accession2taxid -i acc_list.txt -o acc_name.tsv
 ```
 
+## taxonid2ame
+
+This program reads a text file with taxon IDs appends the corresponding taxon
+name, separated by a tab.
+
+Usage:
+```
+taxonid2name -t nodes.dmp -n names.dmp -i taxon_id_list.txt [-o out.tsv]
+```
+
+Optional arguments:
+```
+-p    Print full taxon path.
+-r    Print taxon path containing only ranks specified by a comma-separated list,
+		  for example: superkingdom,phylum,class,order,family,genus,species
+```
+
+
 ## lca
 
 This program reads a file with a list of taxon IDs (separated by tabs) per line and
@@ -85,7 +103,7 @@ Example:
 ```
 tar xf taxdump.tar.gz names.dmp nodes.dmp
 
-grep "scientific name" names.dmp| grep -w -P "uncultured|environmental samples|metagenome|unclassified" | cut -f1 >in.txt
+grep "scientific name" names.dmp| grep -w -P "uncultured|environmental samples|metagenome|unclassified|unidentified" | cut -f1 >in.txt
 
 taxonomy-tools/src/subtree -t nodes.dmp -i in.txt > exclusion_list.txt
 

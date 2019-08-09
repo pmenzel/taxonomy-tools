@@ -10,11 +10,14 @@ else
 LD_LIBS_STATIC = -Wl,--whole-archive -lpthread -lz -Wl,--no-whole-archive
 endif
 
-all: makefile blasthits2krona lca acc2name subtree
-	mkdir -p ../bin && cp blasthits2krona lca acc2name subtree ../bin/
+all: makefile blasthits2krona lca acc2name subtree taxonid2name
+	mkdir -p ../bin && cp blasthits2krona lca acc2name taxonid2name subtree ../bin/
 
 acc2name: makefile acc2name.o util.o
 	$(CXX) $(LDFLAGS) -o acc2name acc2name.o util.o
+
+taxonid2name: makefile taxonid2name.o util.o
+	$(CXX) $(LDFLAGS) -o taxonid2name taxonid2name.o util.o
 
 blasthits2krona: makefile blasthits2krona.o util.o
 	$(CXX) $(LDFLAGS) -o blasthits2krona blasthits2krona.o util.o
@@ -31,7 +34,7 @@ subtree: makefile subtree.o util.o
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c -o $@ $<
 
 clean:
-	rm -f -v blasthits2krona lca acc2name subtree ../bin/*
+	rm -f -v blasthits2krona lca acc2name taxonid2name subtree ../bin/*
 	find . -name "*.o" -delete
 
 static: LDFLAGS = -static
