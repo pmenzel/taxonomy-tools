@@ -32,9 +32,9 @@ Usage:
 acc2name -t nodes.dmp -n names.dmp -a nucl_gb.accession2taxid -i acc_list.txt -o acc_name.tsv
 ```
 
-## taxonid2ame
+## taxonid2name
 
-This program reads a text file with taxon IDs appends the corresponding taxon
+This program reads a text file with taxon IDs and appends the corresponding taxon
 name, separated by a tab.
 
 Usage:
@@ -61,8 +61,8 @@ lca -t nodes.dmp -i input.tsv -o out
 ```
 
 By default, the program returns the standard LCA for the given list of taxon IDs.
-When setting the option `-m lowest`, it instead returns that taxon which is lowest
-in a path and above any bifurcation creates by the input IDs.
+When setting the option `-m lowest`, it instead returns that taxon that is lowest
+in a path and above any bifurcation created by the input IDs.
 
 Example:
 
@@ -97,7 +97,7 @@ is used as an exclusion list for `lca` (see above).
 Similarly, the taxon ID list can be used for including or excluding taxa in
 the NCBI BLAST+ programs, using the options `-taxidlist` or
 `-negative_taxidlist` respectively, which are available with the v5 database
-format from BLAST+ version 2.8.0+.
+format from BLAST+ version >=2.8.0.
 
 Example:
 ```
@@ -105,9 +105,9 @@ tar xf taxdump.tar.gz names.dmp nodes.dmp
 
 grep "scientific name" names.dmp| grep -w -P "uncultured|environmental samples|metagenome|unclassified|unidentified" | cut -f1 >in.txt
 
-taxonomy-tools/src/subtree -t nodes.dmp -i in.txt > exclusion_list.txt
+subtree -t nodes.dmp -i in.txt > exclusion_list.txt
 
-blastn -negative_taxidlist -db ...
+blastn -negative_taxidlist exclusion_list.txt -db ...
 ```
 
 ## taxonR
