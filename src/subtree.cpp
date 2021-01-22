@@ -18,7 +18,7 @@
 
 void usage(char *progname);
 
-bool dfs(const TaxonId parent, const std::multimap<TaxonId, TaxonId> & parent2children, TaxonSet & output_ids) {
+void dfs(const TaxonId parent, const std::multimap<TaxonId, TaxonId> & parent2children, TaxonSet & output_ids) {
 
 	auto range = parent2children.equal_range(parent);
 	for(auto i = range.first; i != range.second; ++i) {
@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
   }
 
 
+	if(verbose) std::cerr << "Generating all subtrees for input taxon id list"  << std::endl;
 	for(const TaxonId n : input_ids) {
 		output_ids.insert(n);
 		if(parent2children.count(n) > 0) {
