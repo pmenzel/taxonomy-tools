@@ -133,7 +133,6 @@ int main(int argc, char** argv) {
 		if(line.length() == 0) { continue; }
 		if(line.find('-') != std::string::npos) {
 			std::cerr << "Error: Found bad taxon id in line: " << line << std::endl;
-			*out_stream << line << "\n";
 			continue;
 		}
 
@@ -143,24 +142,19 @@ int main(int argc, char** argv) {
 		}
 		catch(const std::invalid_argument& ia) {
 			std::cerr << "Error: Found bad taxon id in line: " << line << std::endl;
-			*out_stream << line << "\n";
 			continue;
 		}
 		catch (const std::out_of_range& oor) {
 			std::cerr << "Error: Found bad taxon id (out of range error) in line: " << line << std::endl;
-			*out_stream << line << "\n";
 			continue;
 		}
-		if(taxonid==18446744073708481330u) { std::cerr << line << "\n"; }
 
 		if(nodes.count(taxonid)==0) {
 			std::cerr << "Warning: Taxon ID " << taxonid << " in output file is not contained in taxonomic tree file "<< nodes_filename << ".\n";
-			*out_stream << line << "\n";
 			continue;
 		}
 		if(node2name.count(taxonid)==0) {
 			std::cerr << "Warning: Taxon ID " << taxonid << " in output file is not found in file "<< names_filename << ".\n";
-			*out_stream << line << "\n";
 			continue;
 		}
 

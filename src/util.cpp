@@ -213,7 +213,8 @@ TaxonName getTaxonNameFromId(const std::unordered_map<TaxonId,TaxonName> & node2
 	TaxonName taxon_name;
 	if(node2name.count(id)==0) {
 		std::cerr << "Warning: Taxon ID " << id << " is not found in file "<< names_filename << "." << std::endl;
-		taxon_name = "taxonid:"; taxon_name += std::to_string(id);
+		taxon_name = "taxonid:";
+		taxon_name += std::to_string(id);
 	}
 	else {
 		taxon_name = node2name.at(id);
